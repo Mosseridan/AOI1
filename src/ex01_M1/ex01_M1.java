@@ -24,14 +24,14 @@ public class ex01_M1 {
 
 		ParseArgs(args);
 
-		String time = sendRequest(INPUT_URL);
+		String time = getReqTime(INPUT_URL);
 
 		System.out.println(time);
 	}
 
-	public static String sendRequest(String url) {
+	public static String getReqTime(String url) {
 
-		String curl_cmd = CURL_CMD_START + INPUT_URL;
+		String curl_cmd = CURL_CMD_START + url;
 		String res = "";
 		String time = "";
 		try {
@@ -49,7 +49,7 @@ public class ex01_M1 {
 	}
 
 	private static void ParseArgs(String[] args) {
-
+		
 		INPUT_URL = args[0];
 	}
 
