@@ -2,6 +2,7 @@ package ex01_M2;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.*;
 
 public class ex01_M2 {
 
@@ -114,6 +115,8 @@ public class ex01_M2 {
 		return "";
 	}
 
+	/*
+
 	public static boolean sendReq(String url) {
 
 		try {
@@ -128,6 +131,7 @@ public class ex01_M2 {
 		return false;
 	}
 
+
 	public static double getReqTime(String url) {
 
 		try {
@@ -136,6 +140,45 @@ public class ex01_M2 {
 
 			stdInput.readLine();
 			return Double.parseDouble(stdInput.readLine());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
+	 */
+
+	public static boolean sendReq(String urlString) {
+
+		try {
+			URL url = new URL(urlString);
+			URLConnection conn = url.openConnection();
+			BufferedReader stdInput = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+			boolean res = stdInput.readLine().equals("1");
+			stdInput.close();
+
+			return res;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+
+	public static double getReqTime(String urlString) {
+		try {
+
+			long milliStart = System.currentTimeMillis();
+
+			URL url = new URL(urlString);
+			URLConnection conn = url.openConnection();
+			conn.getInputStream();
+			
+			long milliEnd = System.currentTimeMillis();
+
+			return milliEnd - milliStart;
 
 		} catch (Exception e) {
 			e.printStackTrace();
