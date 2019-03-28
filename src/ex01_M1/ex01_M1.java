@@ -20,26 +20,26 @@ public class ex01_M1 {
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
-
+	public static void main(String[] args) throws Exception {
+		
 		ParseArgs(args);
 
-		String time = sendRequest(INPUT_URL);
+		double time = sendRequest(INPUT_URL);
 
 		System.out.println(time);
 	}
 
-	public static String sendRequest(String url) {
+	public static double sendRequest(String url) {
 
 		String curl_cmd = CURL_CMD_START + INPUT_URL;
-		String res = "";
-		String time = "";
+		double res = 0d;
+		double time = 0d;
 		try {
 			Process process = Runtime.getRuntime().exec(curl_cmd);
 			BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-			res = stdInput.readLine();
-			time = stdInput.readLine();
+			res = Double.parseDouble(stdInput.readLine());
+			time = Double.parseDouble(stdInput.readLine());
 
 		} catch (Exception e) {
 			e.printStackTrace();
