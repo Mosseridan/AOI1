@@ -1,7 +1,7 @@
 /**
  * 
  */
-package ex01_M1;
+
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
